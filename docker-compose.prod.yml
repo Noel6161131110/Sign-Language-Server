@@ -19,7 +19,6 @@ services:
       - static_volume:/home/app/web/staticfiles
     ports:
       - 1337:80
-      # Add this line to expose port 443 for SSL
     depends_on:
       - web
 
