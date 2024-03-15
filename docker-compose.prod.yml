@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
-    build: 
+    build:
       context: ./app
       dockerfile: Dockerfile.prod
     command: gunicorn video_chat.wsgi:application --bind 0.0.0.0:8000
