@@ -4,11 +4,12 @@ console.log('In main.js , invoked');
 var usernameInput = document.querySelector('#username');
 
 var btnJoin = document.querySelector('#btn-join');
-
+var messageList = document.querySelector('#message-list');
+var messageInput = document.querySelector('#msg');
 var mapPeers = {};
-
+var btnSendMsg = document.querySelector('#btn-send-msg');
 var username;
-
+var chatContainer = document.querySelector('#chat-container');
 var webSocket;
 
 function webSocketOnMessage(event){
@@ -47,6 +48,45 @@ function webSocketOnMessage(event){
         return;
     }
 }
+
+btnSendMsg.addEventListener('click', sendMsgOnClick);
+
+function getDataChannels(){
+    var dataChannels = [];
+
+    for(peer in mapPeers){
+        var datachannel = mapPeers[peer][1];
+
+        dataChannels.push(datachannel);
+    }
+
+    return dataChannels;
+}
+
+function sendMsgOnClick(){
+    var message = messageInput.value;
+
+    messageInput.value = '';
+
+    var li = document.createElement('li');
+
+    li.appendChild(document.createTextNode('Me: ' + message));
+
+    messageList.appendChild(li);
+
+    var datachannels = getDataChannels();
+
+    message = username + ': ' + message;
+
+    for(index in datachannels){
+        datachannels[index].send(message);
+    }
+
+    messageInput.value = '';
+}
+
+
+
 btnJoin.addEventListener('click', () => {
     username = usernameInput.value;
 
@@ -59,12 +99,15 @@ btnJoin.addEventListener('click', () => {
     usernameInput.value = '';
     usernameInput.disabled = true;
     usernameInput.style.visibililty = 'hidden';
-
+    
     btnJoin.disabled = true;
     btnJoin.style.visibililty = 'hidden';
 
-    var labelUsername = document.querySelector('#label-username');
-    labelUsername.innerHTML = username;
+    document.getElementById('label-username').innerText = username;
+
+    // Display both the video container and the chat container
+    document.getElementById('video-container').style.display = 'block';
+    chatContainer.style.display = 'block';
 
     var loc = window.location;
     var wsStart = 'ws://';
@@ -288,7 +331,6 @@ function addLocalTracks(peer){
     return;
 }
 
-var messageList = document.querySelector('#message-list');
 
 function dcOnMessage(event){
     var message = event.data;
