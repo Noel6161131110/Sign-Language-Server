@@ -1,3 +1,4 @@
 env/
 .env.dev
 .env.prod
+app/chat/MP_Data
