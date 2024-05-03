@@ -1,4 +1,4 @@
-FROM python:3.11.4-slim-buster
+FROM python:3.11.8-slim-bookworm
 
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
@@ -7,8 +7,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libglib2.0-0 \
     pkg-config \
-    libhdf5-dev \
-    netcat
+    libhdf5-dev 
 
 # Set work directory
 WORKDIR /usr/src/app
@@ -25,4 +24,5 @@ COPY ./requirements.txt .
 RUN pip install --no-cache-dir --force-reinstall h5py
 RUN pip install -r requirements.txt
 
-
+RUN python -m pip install mediapipe
+RUN python -m pip install tensorflow==2.12.0
