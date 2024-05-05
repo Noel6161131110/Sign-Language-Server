@@ -1,62 +1,75 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Video Streaming</title>
+    <title>Hand Gesture Recognition</title>
 </head>
 <body>
+    <h1>Hand Gesture Recognition</h1>
     <video id="video" width="640" height="480" autoplay></video>
-    <div id="prediction"></div>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div id="result"></div> <!-- New div to display the received letter -->
+
     <script>
         const video = document.getElementById('video');
-        const predictionDiv = document.getElementById('prediction');
-        let socket = new WebSocket('ws://localhost:8000/ws/stream/');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const resultDiv = document.getElementById('result'); // Reference to the div to display the result
 
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
+        // Open WebSocket connection
+        const ws = new WebSocket("ws://localhost:8000/ws/words/");
+
+        // When WebSocket connection is established
+        ws.onopen = function (event) {
+            console.log('WebSocket connection opened.');
+        };
+
+        // When WebSocket receives a message (predicted alphabet)
+        ws.onmessage = function (event) {
+            const receivedData = event.data;
+            if (receivedData !== "None") {
+                console.log('Received:', receivedData);
+                resultDiv.textContent = "Received letter: " + receivedData; // Update UI with the received letter
+            } else {
+                console.log('Received: None');
+                resultDiv.textContent = "Received letter: " + receivedData;  // Update UI to indicate no letter received
+            }
+        };
+
+        // Access user's webcam
+        async function setupCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
-                    const fps = 30; // adjust as needed
-
-                    video.addEventListener('play', () => {
-                        setInterval(() => {
-                            sendFrame();
-                        }, 1000 / fps);
+                    return new Promise(resolve => {
+                        video.onloadedmetadata = () => {
+                            resolve();
+                        };
                     });
-                })
-                .catch(function (error) {
-                    console.error('Error accessing media devices.', error);
-                });
+                } catch (error) {
+                    console.error('Error accessing webcam:', error);
+                }
+            }
         }
 
-        function sendFrame() {
-            const canvas = document.createElement('canvas');
+        // Capture video frame and send it over WebSocket
+        async function captureFrame() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = canvas.toDataURL('image/jpeg', 0.5); // adjust quality as needed
-            socket.send(dataURLtoBlob(imageData));
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                ws.send(blob);
+            }, 'image/jpeg');
         }
 
-        function dataURLtoBlob(dataURL) {
-            const arr = dataURL.split(',');
-            //const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return u8arr.buffer;
-        }
-
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.prediction) {
-                predictionDiv.innerHTML = 'Predicted sign: ' + data.prediction;
-            }
+        // Setup camera when the page loads
+        window.onload = async () => {
+            await setupCamera();
+            setInterval(captureFrame, 1000); // Adjust interval as needed
         };
     </script>
 </body>
