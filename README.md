@@ -1,6 +1,6 @@
 # Sign Language Detector Server
 
-This repository contains the code for a Sign Language Detector Server built using Django and WebSocket Channels. The server receives frames from the frontend in real-time, processes them, and detects signs, whether they are individual letters or complete words.
+This repository contains the code for a Sign Language Detector Server built using Django and WebSocket Channels as part of our mini project. The server receives frames from the frontend in real-time, processes them, and detects signs, whether they are individual letters or complete words.
 
 ## Features
 
@@ -15,7 +15,7 @@ This repository contains the code for a Sign Language Detector Server built usin
 
 ```
 
-git clone https://github.com/your-username/sign-language-detector-server.git
+git clone https://github.com/Noel6161131110/Sign-Language-Server.git
 
 ```
 
